@@ -12,143 +12,89 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        :root {
-            --primary-color: #e74c3c;
-            --secondary-color: #2c3e50;
-        }
+        :root { --primary: #e74c3c; --dark: #2c3e50; }
 
-        /* --- KRİTİK DÜZELTME BURADA --- */
-        html, body {
+        /* AGRESİF YENİLEME ENGELLEYİCİ */
+        html {
             height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            /* Sayfayı ekrana çiviler, kaydırmayı ve yenilemeyi kesin engeller */
-            position: fixed; 
             overflow: hidden;
             overscroll-behavior: none;
         }
-
-        /* Harita Alanı */
-        #map {
-            width: 100%;
+        body {
             height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            overscroll-behavior: none;
+            position: fixed; /* Sayfayı çivile */
+            width: 100%;
+        }
+
+        #map {
+            width: 100%; height: 100%;
             z-index: 1;
-            /* Harita dışındaki dokunmaları yutar */
-            touch-action: none;
+            background: #ddd;
         }
 
-        /* Üst Bilgi */
+        /* Başlık ve Butonlar */
         header {
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            background-color: rgba(44, 62, 80, 0.95);
-            color: white;
-            padding: 15px 0;
-            text-align: center;
-            font-size: 1.2rem;
-            font-weight: bold;
+            position: absolute; top: 0; left: 0; right: 0;
+            background: rgba(44, 62, 80, 0.9);
+            color: white; padding: 15px;
+            text-align: center; font-weight: bold;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
-        /* Buton Alanı */
         .action-area {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2000;
-            width: 85%;
+            position: absolute; bottom: 30px; left: 50%;
+            transform: translateX(-50%); width: 85%; z-index: 2000;
         }
 
         #btn-report {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 18px;
-            font-size: 1.2rem;
-            border-radius: 50px;
-            width: 100%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            background: var(--primary); color: white;
+            border: none; padding: 15px; border-radius: 50px;
+            width: 100%; font-size: 1.2rem; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; gap: 10px;
         }
 
         /* Modal */
         .modal {
-            display: none;
-            position: fixed;
+            display: none; position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            z-index: 3000;
-            justify-content: center;
+            background: rgba(0,0,0,0.8); z-index: 3000;
             align-items: end;
         }
-
         .modal-content {
-            background-color: white;
-            width: 100%;
-            border-radius: 20px 20px 0 0;
-            padding: 25px;
+            background: white; width: 100%;
+            padding: 20px; border-radius: 20px 20px 0 0;
             padding-bottom: 50px;
-            animation: slideUp 0.3s ease-out;
         }
-
-        @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
-
         .category-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;
         }
-
         .cat-btn {
-            background: #f8f9fa;
-            border: 2px solid #ddd;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
+            padding: 15px; background: #f1f2f6; border: 2px solid #ddd;
+            border-radius: 10px; text-align: center;
+        }
+        .close-btn {
+            width: 100%; padding: 15px; background: #95a5a6;
+            color: white; border: none; border-radius: 10px;
         }
         
-        .cat-btn i { font-size: 1.8rem; color: var(--secondary-color); }
-        .close-btn {
-            width: 100%; padding: 15px;
-            background: #95a5a6; color: white;
-            border: none; border-radius: 10px; font-size: 1rem;
-        }
-
         #loader {
-            display: none;
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            z-index: 4000;
-            text-align: center;
+            display: none; position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; padding: 20px; border-radius: 10px;
+            z-index: 4000; text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <i class="fas fa-wheelchair"></i> Engelsiz Yol
-    </header>
-
+    <header><i class="fas fa-wheelchair"></i> Engelsiz Yol</header>
     <div id="map"></div>
-
+    
     <div class="action-area">
         <button id="btn-report" onclick="openReportModal()">
             <i class="fas fa-exclamation-circle"></i> SORUN BİLDİR
@@ -157,124 +103,139 @@
 
     <div id="modal-categories" class="modal">
         <div class="modal-content">
-            <h3 style="text-align: center; margin-top: 0;">Sorun Nedir?</h3>
+            <h3 style="text-align:center; margin-top:0">Sorun Tipi</h3>
             <div class="category-grid">
-                <button class="cat-btn" onclick="submitReport('Araç Park Etmiş')">
-                    <i class="fas fa-car"></i> Kaldırımda Araç
-                </button>
-                <button class="cat-btn" onclick="submitReport('Kaldırım Bozuk')">
-                    <i class="fas fa-road"></i> Bozuk Zemin
-                </button>
-                <button class="cat-btn" onclick="submitReport('İnşaat/Çalışma')">
-                    <i class="fas fa-hard-hat"></i> Çalışma Var
-                </button>
-                <button class="cat-btn" onclick="submitReport('Rampa Sorunu')">
-                    <i class="fas fa-walking"></i> Rampa Hatalı
-                </button>
+                <button class="cat-btn" onclick="submitReport('Araç Park Etmiş')"><i class="fas fa-car"></i><br>Araç</button>
+                <button class="cat-btn" onclick="submitReport('Kaldırım Bozuk')"><i class="fas fa-road"></i><br>Bozuk</button>
+                <button class="cat-btn" onclick="submitReport('İnşaat Çalışması')"><i class="fas fa-hard-hat"></i><br>Çalışma</button>
+                <button class="cat-btn" onclick="submitReport('Rampa Sorunu')"><i class="fas fa-walking"></i><br>Rampa</button>
             </div>
             <button class="close-btn" onclick="closeModal()">İptal</button>
         </div>
     </div>
 
-    <div id="loader">
-        <i class="fas fa-spinner fa-spin fa-2x"></i>
-        <p>İşleniyor...</p>
-    </div>
+    <div id="loader"><i class="fas fa-spinner fa-spin fa-2x"></i><br>İşlem yapılıyor...</div>
 
     <script>
-        // --- GOOGLE SCRIPT LINKINI BURAYA YAPISTIRIN ---
+        // --- LİNKİ BURAYA YAPIŞTIRIN ---
         const GOOGLE_SCRIPT_URL = 'BURAYA_GOOGLE_APPS_SCRIPT_URL_GELECEK'; 
-        
-        let map;
-        let userLat = 0;
-        let userLng = 0;
-        let userMarker;
+
+        let map, userMarker;
+        let userLat = 0, userLng = 0;
+        let markersGroup; // Tüm işaretçileri tutan grup
 
         function initMap() {
+            // Harita ayarları
             map = L.map('map', {
-                zoomControl: false, 
-                bounceAtZoomLimits: false // Harita sınırlarında zıplamayı kapat
+                zoomControl: false,
+                bounceAtZoomLimits: false,
+                attributionControl: false
             }).setView([39.9334, 32.8597], 6);
 
-            // Modern, Hızlı Harita (CartoDB)
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap &copy; CARTO',
-                subdomains: 'abcd',
                 maxZoom: 20
             }).addTo(map);
 
+            markersGroup = L.featureGroup().addTo(map);
+
+            // Verileri Çek
             fetchExistingReports();
-            locateUser(true);
+
+            // Konumu Bul
+            locateUser();
+
+            // TELEFONDA YENİLENMEYİ ENGELLEYEN JAVASCRIPT
+            // Sadece harita dışındaki yerlere dokununca varsayılanı engelle
+            document.body.addEventListener('touchmove', function(e) {
+                // Eğer dokunulan yer harita değilse (örneğin başlık), kaydırmayı engelle
+                if (!e.target.closest('.leaflet-container')) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         }
 
-        function locateUser(isStartup) {
+        function locateUser() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        userLat = position.coords.latitude;
-                        userLng = position.coords.longitude;
-                        map.setView([userLat, userLng], 18);
-                        
-                        if (userMarker) {
-                            userMarker.setLatLng([userLat, userLng]);
-                        } else {
-                            userMarker = L.circleMarker([userLat, userLng], {
-                                color: '#3498db',
-                                fillColor: '#3498db',
-                                fillOpacity: 1,
-                                radius: 8
-                            }).addTo(map).bindPopup("Buradasınız");
-                        }
-                    }, 
-                    (error) => { console.log("Konum hatası", error); },
-                    { enableHighAccuracy: true }
-                );
+                navigator.geolocation.getCurrentPosition(pos => {
+                    userLat = pos.coords.latitude;
+                    userLng = pos.coords.longitude;
+
+                    if(userMarker) userMarker.remove();
+                    
+                    userMarker = L.circleMarker([userLat, userLng], {
+                        color: '#2980b9', fillColor: '#3498db', fillOpacity: 1, radius: 8
+                    }).addTo(map).bindPopup("Siz");
+                    
+                    // Haritayı kullanıcıya odakla
+                    map.setView([userLat, userLng], 17);
+                }, err => {
+                    // Konum hatası sessiz kalsın, harita çalışmaya devam etsin
+                    console.log(err);
+                }, { enableHighAccuracy: true });
             }
         }
 
-        function openReportModal() {
-            locateUser(false); 
-            document.getElementById('modal-categories').style.display = 'flex';
+        function fetchExistingReports() {
+            // HATA AYIKLAMA: Veri çekiliyor uyarısı
+            // alert("Veriler sunucudan isteniyor..."); // İsterseniz bunu açın
+
+            fetch(GOOGLE_SCRIPT_URL)
+            .then(res => res.json())
+            .then(data => {
+                if(data.length === 0) {
+                    alert("Sistemde kayıtlı şikayet yok.");
+                } else {
+                    // Veri geldiyse ekrana yaz (Debug için)
+                    // alert("Sunucudan " + data.length + " adet şikayet geldi."); 
+                }
+
+                data.forEach(p => {
+                    let lat = parseFloat(p.lat);
+                    let lng = parseFloat(p.lng);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        let m = L.marker([lat, lng])
+                            .bindPopup(`<b>${p.type}</b><br>${p.time.substring(0,10)}`);
+                        markersGroup.addLayer(m);
+                    }
+                });
+            })
+            .catch(err => {
+                alert("Veri çekme hatası: " + err);
+                console.error(err);
+            });
         }
 
+        function openReportModal() {
+            locateUser();
+            document.getElementById('modal-categories').style.display = 'flex';
+        }
         function closeModal() {
             document.getElementById('modal-categories').style.display = 'none';
         }
 
-        function submitReport(problemType) {
-            if (userLat === 0) {
-                alert("Konum bekleniyor...");
-                locateUser(false);
-                return;
-            }
+        function submitReport(type) {
+            if(userLat === 0) { alert("Konum alınıyor, lütfen bekleyin..."); locateUser(); return; }
+            
             closeModal();
             document.getElementById('loader').style.display = 'block';
 
-            const data = {
-                type: problemType, lat: userLat, lng: userLng, timestamp: new Date().toLocaleString()
-            };
+            const payload = { type: type, lat: userLat, lng: userLng, timestamp: new Date().toLocaleString() };
 
-            L.marker([userLat, userLng]).addTo(map).bindPopup(problemType);
+            // Haritaya hemen ekle
+            L.marker([userLat, userLng]).addTo(markersGroup).bindPopup(type);
 
             fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            }).then(() => {
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
                 document.getElementById('loader').style.display = 'none';
-                alert("Kaydedildi!");
-            }).catch(() => {
+                alert("Bildirim başarıyla gönderildi.");
+            })
+            .catch(e => {
                 document.getElementById('loader').style.display = 'none';
-                alert("Kaydedildi (Çevrimdışı)");
-            });
-        }
-
-        function fetchExistingReports() {
-            fetch(GOOGLE_SCRIPT_URL).then(r => r.json()).then(data => {
-                data.forEach(p => {
-                    let lat = parseFloat(p.lat), lng = parseFloat(p.lng);
-                    if (!isNaN(lat)) L.marker([lat, lng]).addTo(map).bindPopup(p.type);
-                });
+                alert("Gönderildi (Çevrimdışı Mod)");
             });
         }
 
