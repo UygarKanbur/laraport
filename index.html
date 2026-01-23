@@ -207,9 +207,10 @@
         function initMap() {
             // Türkiye merkezli başlangıç
             map = L.map('map').setView([39.9334, 32.8597], 6);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
             }).addTo(map);
 
             // Mevcut verileri haritaya çekme fonksiyonu (İsteğe bağlı)
@@ -341,4 +342,5 @@ function fetchExistingReports() {
         window.onload = initMap;
     </script>
 </body>
+
 </html>
