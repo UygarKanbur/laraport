@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Engelsiz Yol Bildirimi</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Engelsiz Yol</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -15,39 +17,39 @@
             --secondary-color: #2c3e50;
         }
 
-        /* SAYFA YENİLENMESİNİ ENGELLEYEN KOD BURASI */
+        /* --- KRİTİK DÜZELTME BURADA --- */
         html, body {
             height: 100%;
             width: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Kaydırma çubuklarını gizle */
-            overscroll-behavior: none; /* Aşağı çekince yenilemeyi kapat */
-            touch-action: none; /* Dokunmatik karmaşasını önle */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Sayfayı ekrana çiviler, kaydırmayı ve yenilemeyi kesin engeller */
+            position: fixed; 
+            overflow: hidden;
+            overscroll-behavior: none;
         }
 
         /* Harita Alanı */
         #map {
             width: 100%;
-            height: 100%; /* Tüm ekranı kapla */
+            height: 100%;
             z-index: 1;
+            /* Harita dışındaki dokunmaları yutar */
+            touch-action: none;
         }
 
         /* Üst Bilgi */
         header {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: rgba(44, 62, 80, 0.9);
+            top: 0; left: 0; right: 0;
+            background-color: rgba(44, 62, 80, 0.95);
             color: white;
             padding: 15px 0;
             text-align: center;
             font-size: 1.2rem;
             font-weight: bold;
             z-index: 1000;
-            pointer-events: none; /* Haritaya tıklamayı engellemesin */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
         /* Buton Alanı */
@@ -57,35 +59,31 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 2000;
-            width: 80%;
-            text-align: center;
+            width: 85%;
         }
 
         #btn-report {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 18px 30px;
-            font-size: 1.3rem;
+            padding: 18px;
+            font-size: 1.2rem;
             border-radius: 50px;
             width: 100%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             cursor: pointer;
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            /* Mobilde dokunmayı iyileştirir */
-            touch-action: manipulation; 
         }
 
-        /* Modal ve Diğerleri */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.8);
             z-index: 3000;
             justify-content: center;
@@ -97,7 +95,7 @@
             width: 100%;
             border-radius: 20px 20px 0 0;
             padding: 25px;
-            padding-bottom: 50px; /* iPhone alt çubuğu için pay */
+            padding-bottom: 50px;
             animation: slideUp 0.3s ease-out;
         }
 
@@ -114,23 +112,19 @@
             background: #f8f9fa;
             border: 2px solid #ddd;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 1rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         
-        .cat-btn i { font-size: 1.5rem; color: var(--secondary-color); }
-        
+        .cat-btn i { font-size: 1.8rem; color: var(--secondary-color); }
         .close-btn {
-            width: 100%;
-            padding: 15px;
-            background: #95a5a6;
-            color: white;
-            border: none;
-            border-radius: 10px;
+            width: 100%; padding: 15px;
+            background: #95a5a6; color: white;
+            border: none; border-radius: 10px; font-size: 1rem;
         }
 
         #loader {
@@ -163,7 +157,7 @@
 
     <div id="modal-categories" class="modal">
         <div class="modal-content">
-            <h3 style="text-align: center; margin-top: 0;">Sorun Türü?</h3>
+            <h3 style="text-align: center; margin-top: 0;">Sorun Nedir?</h3>
             <div class="category-grid">
                 <button class="cat-btn" onclick="submitReport('Araç Park Etmiş')">
                     <i class="fas fa-car"></i> Kaldırımda Araç
@@ -188,7 +182,7 @@
     </div>
 
     <script>
-        // --- BURAYA KENDİ GOOGLE SCRIPT LİNKİNİZİ YAPIŞTIRIN ---
+        // --- GOOGLE SCRIPT LINKINI BURAYA YAPISTIRIN ---
         const GOOGLE_SCRIPT_URL = 'BURAYA_GOOGLE_APPS_SCRIPT_URL_GELECEK'; 
         
         let map;
@@ -197,38 +191,30 @@
         let userMarker;
 
         function initMap() {
-            // Haritayı başta Türkiye genelinde başlat (GPS alınana kadar)
             map = L.map('map', {
-                zoomControl: false // Mobilde zoom butonları yer kaplamasın
+                zoomControl: false, 
+                bounceAtZoomLimits: false // Harita sınırlarında zıplamayı kapat
             }).setView([39.9334, 32.8597], 6);
 
-            // Access Blocked hatasını çözen CartoDB katmanı
+            // Modern, Hızlı Harita (CartoDB)
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
                 subdomains: 'abcd',
                 maxZoom: 20
             }).addTo(map);
 
-            // Mevcut verileri çek
             fetchExistingReports();
-
-            // --- OTOMATİK KONUM ALMA ---
-            // Uygulama açılır açılmaz konumu bulmaya çalış
             locateUser(true);
         }
 
         function locateUser(isStartup) {
             if (navigator.geolocation) {
-                // Konum istenirken loader göstermiyoruz ki harita kilitlenmesin
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         userLat = position.coords.latitude;
                         userLng = position.coords.longitude;
-                        
-                        // Konuma uç
                         map.setView([userLat, userLng], 18);
-
-                        // Mavi nokta (Kullanıcı) güncelle
+                        
                         if (userMarker) {
                             userMarker.setLatLng([userLat, userLng]);
                         } else {
@@ -240,20 +226,14 @@
                             }).addTo(map).bindPopup("Buradasınız");
                         }
                     }, 
-                    (error) => {
-                        console.log("Konum alınamadı: ", error);
-                        if(!isStartup) alert("Konum alınamadı. Lütfen GPS'i açın.");
-                    },
+                    (error) => { console.log("Konum hatası", error); },
                     { enableHighAccuracy: true }
                 );
             }
         }
 
-        // Butona basınca menüyü aç (Konumu da tazele)
         function openReportModal() {
-            // Konumu garantiye almak için tekrar iste
             locateUser(false); 
-            // Menüyü aç
             document.getElementById('modal-categories').style.display = 'flex';
         }
 
@@ -263,53 +243,37 @@
 
         function submitReport(problemType) {
             if (userLat === 0) {
-                alert("Konumunuz henüz bulunamadı. Lütfen biraz bekleyip tekrar deneyin.");
+                alert("Konum bekleniyor...");
                 locateUser(false);
                 return;
             }
-
             closeModal();
             document.getElementById('loader').style.display = 'block';
 
             const data = {
-                type: problemType,
-                lat: userLat,
-                lng: userLng,
-                timestamp: new Date().toLocaleString()
+                type: problemType, lat: userLat, lng: userLng, timestamp: new Date().toLocaleString()
             };
 
-            // Haritaya hemen ekle (Görsel geri bildirim)
-            L.marker([userLat, userLng]).addTo(map)
-             .bindPopup(`<b>${problemType}</b><br>Şimdi eklendi`);
+            L.marker([userLat, userLng]).addTo(map).bindPopup(problemType);
 
-            // Google Sheets'e gönder
             fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
+                method: 'POST', mode: 'no-cors',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
-            })
-            .then(() => {
+            }).then(() => {
                 document.getElementById('loader').style.display = 'none';
-                alert("Bildiriminiz kaydedildi!");
-            })
-            .catch(error => {
+                alert("Kaydedildi!");
+            }).catch(() => {
                 document.getElementById('loader').style.display = 'none';
-                alert("Bildirim gönderildi (Offline mod).");
+                alert("Kaydedildi (Çevrimdışı)");
             });
         }
 
         function fetchExistingReports() {
-            fetch(GOOGLE_SCRIPT_URL)
-            .then(response => response.json())
-            .then(data => {
-                data.forEach(point => {
-                    let lat = parseFloat(point.lat);
-                    let lng = parseFloat(point.lng);
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        L.marker([lat, lng]).addTo(map)
-                         .bindPopup(`<b>${point.type}</b><br><small>${point.time}</small>`);
-                    }
+            fetch(GOOGLE_SCRIPT_URL).then(r => r.json()).then(data => {
+                data.forEach(p => {
+                    let lat = parseFloat(p.lat), lng = parseFloat(p.lng);
+                    if (!isNaN(lat)) L.marker([lat, lng]).addTo(map).bindPopup(p.type);
                 });
             });
         }
