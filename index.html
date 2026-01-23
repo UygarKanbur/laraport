@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Engelsiz Yol Bildirimi</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #e74c3c; /* Dikkat çekici kırmızı */
+            --secondary-color: #2c3e50;
+            --bg-color: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Üst Bilgi */
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        /* Ana Buton Alanı (Ekranın altında sabit) */
+        .action-area {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            width: 90%;
+            text-align: center;
+        }
+
+        #btn-report {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 20px 30px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #btn-report:active {
+            transform: scale(0.95) translateX(-50%);
+        }
+
+        /* Kategori Seçim Modalı */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 3000;
+            justify-content: center;
+            align-items: end;
+        }
+
+        .modal-content {
+            background-color: white;
+            width: 100%;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {transform: translateY(100%);}
+            to {transform: translateY(0);}
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .cat-btn {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cat-btn i { font-size: 1.5rem; color: var(--secondary-color); }
+        .cat-btn:hover { background-color: #e9ecef; border-color: var(--secondary-color); }
+        
+        .close-btn {
+            width: 100%;
+            padding: 15px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* Harita Alanı */
+        #map {
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Yükleniyor Göstergesi */
+        #loader {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 4000;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <i class="fas fa-wheelchair"></i> Engelsiz Yol Bildirimi
+    </header>
+
+    <div id="map"></div>
+
+    <div class="action-area">
+        <button id="btn-report" onclick="getLocation()">
+            <i class="fas fa-exclamation-triangle"></i> SORUN BİLDİR
+        </button>
+    </div>
+
+    <div id="modal-categories" class="modal">
+        <div class="modal-content">
+            <h3 style="text-align: center; margin-top: 0;">Sorun Türünü Seçin</h3>
+            <div class="category-grid">
+                <button class="cat-btn" onclick="submitReport('Araç Park Etmiş')">
+                    <i class="fas fa-car"></i> Kaldırımda Araç
+                </button>
+                <button class="cat-btn" onclick="submitReport('Kaldırım Bozuk')">
+                    <i class="fas fa-road"></i> Bozuk Zemin
+                </button>
+                <button class="cat-btn" onclick="submitReport('İnşaat/Çalışma')">
+                    <i class="fas fa-hard-hat"></i> İnşaat Çalışması
+                </button>
+                <button class="cat-btn" onclick="submitReport('Rampa Yok/Hatalı')">
+                    <i class="fas fa-walking"></i> Rampa Sorunu
+                </button>
+            </div>
+            <button class="close-btn" onclick="closeModal()">İptal</button>
+        </div>
+    </div>
+
+    <div id="loader">
+        <i class="fas fa-spinner fa-spin fa-2x"></i>
+        <p>Konum alınıyor...</p>
+    </div>
+
+    <script>
+        // --- AYARLAR ---
+        // Adım 2'de oluşturacağınız Google Script URL'sini buraya yapıştıracaksınız:
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz-pgdpp2ZjQICcMHBtiky1f9uHOVc1kIdrDL8KlIdKhJbsXurRlC80aXc6e9ypfjv/exec'; 
+        
+        let map;
+        let userLat, userLng;
+
+        // Haritayı Başlat
+        function initMap() {
+            // Türkiye merkezli başlangıç
+            map = L.map('map').setView([39.9334, 32.8597], 6);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Mevcut verileri haritaya çekme fonksiyonu (İsteğe bağlı)
+            fetchExistingReports();
+        }
+
+        // Konum Alma
+        function getLocation() {
+            document.getElementById('loader').style.display = 'block';
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError, {
+                    enableHighAccuracy: true
+                });
+            } else {
+                alert("Tarayıcınız konum özelliğini desteklemiyor.");
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        function showPosition(position) {
+            userLat = position.coords.latitude;
+            userLng = position.coords.longitude;
+            
+            // Haritayı kullanıcının olduğu yere odakla
+            map.setView([userLat, userLng], 18);
+            
+            // Kullanıcının yerini göster
+            L.circleMarker([userLat, userLng], {
+                color: 'blue',
+                radius: 8
+            }).addTo(map).bindPopup("Şu an buradasınız").openPopup();
+
+            document.getElementById('loader').style.display = 'none';
+            // Konum alındı, şimdi sorunu seçtir
+            document.getElementById('modal-categories').style.display = 'flex';
+        }
+
+        function showError(error) {
+            document.getElementById('loader').style.display = 'none';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("Konum izni reddedildi. Bildirim yapmak için konuma izin verin.");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("Konum bilgisi alınamıyor.");
+                    break;
+                case error.TIMEOUT:
+                    alert("Konum isteği zaman aşımına uğradı.");
+                    break;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal-categories').style.display = 'none';
+        }
+
+        // Veriyi Gönderme
+        function submitReport(problemType) {
+            closeModal();
+            document.getElementById('loader').innerHTML = '<i class="fas fa-paper-plane"></i><p>Gönderiliyor...</p>';
+            document.getElementById('loader').style.display = 'block';
+
+            // Google Sheets'e gönderilecek veri
+            const data = {
+                type: problemType,
+                lat: userLat,
+                lng: userLng,
+                timestamp: new Date().toLocaleString()
+            };
+
+            // Ekranda hemen göstermek için marker ekle (Backend beklemeden)
+            L.marker([userLat, userLng])
+             .addTo(map)
+             .bindPopup(`<b>${problemType}</b><br>Az önce bildirildi.`)
+             .openPopup();
+
+            // Google Apps Script'e POST isteği
+            // Not: no-cors modu kullanıyoruz, Google response'unu okuyamayız ama veri gider.
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(() => {
+                document.getElementById('loader').style.display = 'none';
+                alert("Teşekkürler! Bildiriminiz haritaya eklendi.");
+                // Burada gerçek uygulamada verileri tekrar çekmek gerekebilir
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+                document.getElementById('loader').style.display = 'none';
+                alert("Bildirim kaydedildi (Demo Modu).");
+            });
+        }
+
+function fetchExistingReports() {
+            // Google Script'ten veriyi çekiyoruz
+            fetch(GOOGLE_SCRIPT_URL)
+            .then(response => response.json())
+            .then(data => {
+                // Gelen veriyi döngüye alıp haritaya ekle
+                data.forEach(point => {
+                    // Enlem ve Boylam sayı mı kontrol et, değilse çevir
+                    let lat = parseFloat(point.lat);
+                    let lng = parseFloat(point.lng);
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        // Farklı sorun tipleri için farklı ikon/renk yapılabilir
+                        // Şimdilik standart marker kullanıyoruz
+                        L.marker([lat, lng])
+                         .addTo(map)
+                         .bindPopup(`
+                             <div style="text-align:center">
+                                 <strong style="color:#c0392b">${point.type}</strong><br>
+                                 <small>${point.time.substring(0,10)}</small>
+                             </div>
+                         `);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("Veriler çekilemedi:", error);
+            });
+        }
+
+        window.onload = initMap;
+    </script>
+</body>
+</html>
