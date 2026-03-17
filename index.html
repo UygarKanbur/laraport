@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#e74c3c">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Engelsiz Yol">
     <title>Engelsiz Yol Bildirimi</title>
@@ -20,27 +20,23 @@
             --secondary-color: #2c3e50;
         }
 
-        /* SAYFA YENİLENMESİNİ ENGELLEYEN KOD BURASI */
         html, body {
             height: 100%;
             width: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Kaydırma çubuklarını gizle */
-            overscroll-behavior: none; /* Aşağı çekince yenilemeyi kapat */
-             /* Dokunmatik karmaşasını önle */
+            overflow: hidden;
+            overscroll-behavior: none;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Harita Alanı */
         #map {
             width: 100%;
-            height: 100%; /* Tüm ekranı kapla */
+            height: 100%;
             z-index: 1;
             touch-action: none;
         }
 
-        /* Üst Bilgi */
         header {
             position: absolute;
             top: 0;
@@ -53,10 +49,9 @@
             font-size: 1.2rem;
             font-weight: bold;
             z-index: 1000;
-            pointer-events: none; /* Haritaya tıklamayı engellemesin */
+            pointer-events: none;
         }
 
-        /* Buton Alanı */
         .action-area {
             position: absolute;
             bottom: 30px;
@@ -82,11 +77,9 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            /* Mobilde dokunmayı iyileştirir */
-            touch-action: manipulation; 
+            touch-action: manipulation;
         }
 
-        /* Modal ve Diğerleri */
         .modal {
             display: none;
             position: fixed;
@@ -103,7 +96,7 @@
             width: 100%;
             border-radius: 20px 20px 0 0;
             padding: 25px;
-            padding-bottom: 50px; /* iPhone alt çubuğu için pay */
+            padding-bottom: 50px;
             animation: slideUp 0.3s ease-out;
         }
 
@@ -194,7 +187,6 @@
     </div>
 
     <script>
-        // --- BURAYA KENDİ GOOGLE SCRIPT LİNKİNİZİ YAPIŞTIRIN ---
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIslgMQmpl3s_NnsgW-_mcCLapR_Ez2nemIUwlk_PR2ZF5MsHKG-SmLQjN_ov5DSSd/exec'; 
         
         let map;
@@ -203,46 +195,34 @@
         let userMarker;
 
         function initMap() {
-
-            function initMap() {
-    // Pull-to-refresh'i tüm cihazlarda engelle (iOS dahil)
+            // Pull-to-refresh'i tüm cihazlarda engelle (iOS dahil)
             document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
+                e.preventDefault();
             }, { passive: false });
-        
-    // ... geri kalan initMap kodunuz devam eder
-            // Haritayı başta Türkiye genelinde başlat (GPS alınana kadar)
+
+            // Haritayı başta Türkiye genelinde başlat
             map = L.map('map', {
-                zoomControl: false // Mobilde zoom butonları yer kaplamasın
+                zoomControl: false
             }).setView([39.9334, 32.8597], 6);
 
-            // Access Blocked hatasını çözen CartoDB katmanı
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
                 subdomains: 'abcd',
                 maxZoom: 20
             }).addTo(map);
 
-            // Mevcut verileri çek
             fetchExistingReports();
-
-            // --- OTOMATİK KONUM ALMA ---
-            // Uygulama açılır açılmaz konumu bulmaya çalış
             locateUser(true);
         }
 
         function locateUser(isStartup) {
             if (navigator.geolocation) {
-                // Konum istenirken loader göstermiyoruz ki harita kilitlenmesin
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         userLat = position.coords.latitude;
                         userLng = position.coords.longitude;
-                        
-                        // Konuma uç
                         map.setView([userLat, userLng], 18);
 
-                        // Mavi nokta (Kullanıcı) güncelle
                         if (userMarker) {
                             userMarker.setLatLng([userLat, userLng]);
                         } else {
@@ -263,11 +243,8 @@
             }
         }
 
-        // Butona basınca menüyü aç (Konumu da tazele)
         function openReportModal() {
-            // Konumu garantiye almak için tekrar iste
             locateUser(false); 
-            // Menüyü aç
             document.getElementById('modal-categories').style.display = 'flex';
         }
 
@@ -292,11 +269,9 @@
                 timestamp: new Date().toLocaleString()
             };
 
-            // Haritaya hemen ekle (Görsel geri bildirim)
             L.marker([userLat, userLng]).addTo(map)
              .bindPopup(`<b>${problemType}</b><br>Şimdi eklendi`);
 
-            // Google Sheets'e gönder
             fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -331,14 +306,13 @@
         window.onload = initMap;
     </script>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js')
-      .then(() => console.log('Service Worker kayıtlı'))
-      .catch(err => console.log('SW hatası:', err));
-  }
-</script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(() => console.log('Service Worker kayıtlı'))
+                .catch(err => console.log('SW hatası:', err));
+        }
+    </script>
+
 </body>
 </html>
-
-
