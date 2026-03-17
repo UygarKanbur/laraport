@@ -23,7 +23,7 @@
             padding: 0;
             overflow: hidden; /* Kaydırma çubuklarını gizle */
             overscroll-behavior: none; /* Aşağı çekince yenilemeyi kapat */
-            touch-action: none; /* Dokunmatik karmaşasını önle */
+             /* Dokunmatik karmaşasını önle */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
@@ -32,6 +32,7 @@
             width: 100%;
             height: 100%; /* Tüm ekranı kapla */
             z-index: 1;
+            touch-action: none;
         }
 
         /* Üst Bilgi */
@@ -197,6 +198,14 @@
         let userMarker;
 
         function initMap() {
+
+            function initMap() {
+    // Pull-to-refresh'i tüm cihazlarda engelle (iOS dahil)
+            document.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            }, { passive: false });
+        
+    // ... geri kalan initMap kodunuz devam eder
             // Haritayı başta Türkiye genelinde başlat (GPS alınana kadar)
             map = L.map('map', {
                 zoomControl: false // Mobilde zoom butonları yer kaplamasın
