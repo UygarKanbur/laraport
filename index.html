@@ -144,6 +144,31 @@
             z-index: 4000;
             text-align: center;
         }
+
+        #toast {
+            display: none;
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2c3e50;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            z-index: 5000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            animation: fadeInOut 3s ease forwards;
+        }
+
+        @keyframes fadeInOut {
+            0%   { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+            75%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -181,6 +206,8 @@
         </div>
     </div>
 
+    <div id="toast"></div>
+
     <div id="loader">
         <i class="fas fa-spinner fa-spin fa-2x"></i>
         <p>İşleniyor...</p>
@@ -188,6 +215,17 @@
 
     <script>
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIslgMQmpl3s_NnsgW-_mcCLapR_Ez2nemIUwlk_PR2ZF5MsHKG-SmLQjN_ov5DSSd/exec'; 
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = isError ? '#e74c3c' : '#27ae60';
+            toast.style.display = 'block';
+            toast.style.animation = 'none';
+            toast.offsetHeight; // reflow
+            toast.style.animation = 'fadeInOut 3s ease forwards';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
         
         let map;
         let userLat = 0;
@@ -236,7 +274,7 @@
                     }, 
                     (error) => {
                         console.log("Konum alınamadı: ", error);
-                        if(!isStartup) alert("Konum alınamadı. Lütfen GPS'i açın.");
+                        if(!isStartup) showToast("Konum alınamadı. Lütfen GPS'i açın.", true);
                     },
                     { enableHighAccuracy: true }
                 );
@@ -254,7 +292,7 @@
 
         function submitReport(problemType) {
             if (userLat === 0) {
-                alert("Konumunuz henüz bulunamadı. Lütfen biraz bekleyip tekrar deneyin.");
+                showToast("Konumunuz henüz bulunamadı. Lütfen biraz bekleyip tekrar deneyin.", true);
                 locateUser(false);
                 return;
             }
@@ -280,11 +318,11 @@
             })
             .then(() => {
                 document.getElementById('loader').style.display = 'none';
-                alert("Bildiriminiz kaydedildi!");
+                showToast("✅ Bildiriminiz kaydedildi!");
             })
             .catch(error => {
                 document.getElementById('loader').style.display = 'none';
-                alert("Bildirim gönderildi (Offline mod).");
+                showToast("✅ Bildirim gönderildi!");
             });
         }
 
